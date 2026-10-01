@@ -1,0 +1,48 @@
+# Keeps a deployed Render free-tier instance warm so visitors never hit
+# Render's default "spinning up" interstitial (cold start) — instead they
+# always get TraceDesk's own splash screen instantly.
+#
+# Setup (one time):
+#   1. Deploy via the Render Blueprint and copy the service URL.
+#   2. In your GitHub repo: Settings → Secrets and variables → Actions →
+#      Variables → New repository variable:
+#        Name:  RENDER_URL
+#        Value: https://your-tracedesk.onrender.com
+#
+# Note: GitHub runs scheduled workflows roughly every 10-15 minutes
+# (queues at peak hours), which is comfortably inside Render's 15-minute
+# idle spin-down window.
+
+name: Keep warm
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    name: Ping deployed service
+    runs-on: ubuntu-latest
+    steps:
+      - name: Health check
+        env:
+          URL: ${{ vars.RENDER_URL }}
+        run: |
+          if [ -z "$URL" ]; then
+            echo "RENDER_URL repository variable is not set - skipping."
+            echo "Add it under Settings > Secrets and variables > Actions > Variables."
+            exit 0
+          fi
+          echo "Pinging $URL/api/health ..."
+          # Cold starts can take ~50s on free instances; allow generous time.
+          for attempt in 1 2 3; do
+            if curl -sf --max-time 90 "$URL/api/health" > /dev/null; then
+              echo "Service is warm (attempt $attempt)."
+              exit 0
+            fi
+            echo "Attempt $attempt failed; retrying in 10s..."
+            sleep 10
+          done
+          echo "Service did not respond; Render may be redeploying."
+          exit 0

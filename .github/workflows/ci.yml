@@ -1,0 +1,55 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  quality:
+    name: Typecheck · Unit tests · Builds
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+      - name: Install frontend dependencies
+        run: npm ci
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+      - name: Frontend typecheck + build
+        run: npm run build
+      - name: Backend typecheck
+        run: npm run typecheck --prefix backend
+      - name: Backend build
+        run: npm run build --prefix backend
+      - name: Frontend unit tests
+        run: npm run test:frontend
+      - name: Backend unit + API tests
+        run: npm test --prefix backend
+
+  docker:
+    name: Docker image build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build production image
+        run: docker build -t tracedesk:ci .
+
+  e2e:
+    name: Playwright happy path
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix backend
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+      - name: Run E2E (boots the full app via npm run serve)
+        run: npx playwright test

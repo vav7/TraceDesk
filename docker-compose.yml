@@ -1,0 +1,33 @@
+# TraceDesk — local container run.
+#
+#   docker compose up --build        → http://localhost:3001 (in-memory demo data)
+#
+# To run with persistent PostgreSQL, uncomment the `db` service, the
+# DATABASE_URL/depends_on lines below, and the `volumes` block at the bottom.
+
+services:
+  tracedesk:
+    build: .
+    ports:
+      - "3001:3001"
+    environment:
+      NODE_ENV: production
+      PORT: 3001
+      # DATABASE_URL: postgresql://tracedesk:tracedesk@db:5432/tracedesk
+    # depends_on:
+    #   - db
+    restart: unless-stopped
+
+  # db:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: tracedesk
+  #     POSTGRES_PASSWORD: tracedesk
+  #     POSTGRES_DB: tracedesk
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   ports:
+  #     - "5432:5432"
+
+# volumes:
+#   pgdata:

@@ -1,0 +1,44 @@
+# TraceDesk · Render Blueprint — one full-stack web service.
+#
+# Express serves the built React SPA (dist/) and the JSON API in a single
+# process, bound to the PORT Render injects (app.js: process.env.PORT || 3001).
+#
+# Why this build can't flunk its health check:
+#   1. /api/health is registered before every other route, answered from the
+#      in-process pool, and exempt from rate limiting - it passes as soon as
+#      the process listens, before the DB is even touched.
+#   2. No database is required: without DATABASE_URL the service boots on the
+#      built-in in-memory PostgreSQL (pg-mem), migrated and seeded at startup.
+#      If DATABASE_URL IS set but unreachable, the service falls back to
+#      in-memory instead of failing (opt out with DB_STRICT=true).
+#   3. The build chain is three plain steps with no `npm prune` - pruning on
+#      Render is the most common source of broken dependency trees and slow,
+#      flaky builds. Extra dev deps in the image cost nothing at runtime.
+#   4. NODE_VERSION is pinned to the same 22.x line as .node-version and the
+#      Dockerfile, so runtime and build can never mismatch.
+#
+# Deploy: Render dashboard -> New + -> Blueprint -> select this repository.
+
+services:
+  - type: web
+    name: tracedesk
+    runtime: node
+    plan: free
+    branch: main
+    buildCommand: npm ci && npm --prefix backend ci && npm run build:all
+    startCommand: node backend/dist/app.js
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: NODE_VERSION
+        value: 22.22.0
+      # Optional: point at any managed PostgreSQL (Render, Neon, Supabase).
+      # Leave unset for the zero-config in-memory database (resets on restart).
+      # - key: DATABASE_URL
+      #   sync: false
+      # Strict mode: fail startup instead of falling back to in-memory when
+      # DATABASE_URL is unreachable. Uncomment if you require real Postgres.
+      # - key: DB_STRICT
+      #   value: "true"
