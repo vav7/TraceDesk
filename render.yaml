@@ -23,7 +23,7 @@
 
 services:
   - type: web
-    name: tracedesk
+    name: tracedesk-app
     runtime: node
     plan: free
     branch: main
