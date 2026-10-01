@@ -13,36 +13,36 @@
 # (queues at peak hours), which is comfortably inside Render's 15-minute
 # idle spin-down window.
 
-name: Keep warm
+# name: Keep warm
 
-on:
-  schedule:
-    - cron: '*/10 * * * *'
-  workflow_dispatch:
+# on:
+#   schedule:
+#     - cron: '*/10 * * * *'
+#   workflow_dispatch:
 
-jobs:
-  ping:
-    name: Ping deployed service
-    runs-on: ubuntu-latest
-    steps:
-      - name: Health check
-        env:
-          URL: ${{ vars.RENDER_URL }}
-        run: |
-          if [ -z "$URL" ]; then
-            echo "RENDER_URL repository variable is not set - skipping."
-            echo "Add it under Settings > Secrets and variables > Actions > Variables."
-            exit 0
-          fi
-          echo "Pinging $URL/api/health ..."
-          # Cold starts can take ~50s on free instances; allow generous time.
-          for attempt in 1 2 3; do
-            if curl -sf --max-time 90 "$URL/api/health" > /dev/null; then
-              echo "Service is warm (attempt $attempt)."
-              exit 0
-            fi
-            echo "Attempt $attempt failed; retrying in 10s..."
-            sleep 10
-          done
-          echo "Service did not respond; Render may be redeploying."
-          exit 0
+# jobs:
+#   ping:
+#     name: Ping deployed service
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Health check
+#         env:
+#           URL: ${{ vars.RENDER_URL }}
+#         run: |
+#           if [ -z "$URL" ]; then
+#             echo "RENDER_URL repository variable is not set - skipping."
+#             echo "Add it under Settings > Secrets and variables > Actions > Variables."
+#             exit 0
+#           fi
+#           echo "Pinging $URL/api/health ..."
+#           # Cold starts can take ~50s on free instances; allow generous time.
+#           for attempt in 1 2 3; do
+#             if curl -sf --max-time 90 "$URL/api/health" > /dev/null; then
+#               echo "Service is warm (attempt $attempt)."
+#               exit 0
+#             fi
+#             echo "Attempt $attempt failed; retrying in 10s..."
+#             sleep 10
+#           done
+#           echo "Service did not respond; Render may be redeploying."
+#           exit 0
