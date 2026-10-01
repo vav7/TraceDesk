@@ -11,9 +11,11 @@
 #      built-in in-memory PostgreSQL (pg-mem), migrated and seeded at startup.
 #      If DATABASE_URL IS set but unreachable, the service falls back to
 #      in-memory instead of failing (opt out with DB_STRICT=true).
-#   3. The build chain is three plain steps with no `npm prune` - pruning on
-#      Render is the most common source of broken dependency trees and slow,
-#      flaky builds. Extra dev deps in the image cost nothing at runtime.
+#   3. Both installs use `--include=dev`. The frontend build (tsc -b + vite)
+#      and the backend build (tsc) both need devDependencies - @types/react,
+#      typescript, vite - and when NODE_ENV=production is set, npm silently
+#      skips devDependencies unless --include=dev is passed. That mismatch is
+#      the classic "JSX.IntrinsicElements does not exist" deploy failure.
 #   4. NODE_VERSION is pinned to the same 22.x line as .node-version and the
 #      Dockerfile, so runtime and build can never mismatch.
 #
@@ -25,7 +27,7 @@ services:
     runtime: node
     plan: free
     branch: main
-    buildCommand: npm ci && npm --prefix backend ci && npm run build:all
+    buildCommand: npm ci --include=dev && npm --prefix backend ci --include=dev && npm run build:all
     startCommand: node backend/dist/app.js
     healthCheckPath: /api/health
     autoDeploy: true
