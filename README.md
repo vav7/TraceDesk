@@ -6,7 +6,7 @@
 
 A full-stack SaaS integration troubleshooting platform. Reproduce integration failures in a sandboxed lab, capture wire-level evidence, auto-diagnose root causes, manage incidents against SLAs, escalate to engineering, and turn every resolution into a runbook.
 
-[![Live](https://img.shields.io/badge/Live-Render-39FF14?style=plastic&logo=render&logoColor=white)](https://tracedesk-app.onrender.com/)
+[![Live](https://img.shields.io/badge/Live-Render-7CFC00?logo=render&logoColor=white)](https://tracedesk-app.onrender.com/)
 [![CI](https://github.com/vav7/tracedesk/actions/workflows/ci.yml/badge.svg)](https://github.com/vav7/tracedesk/actions/workflows/ci.yml)
 ![Tests](https://img.shields.io/badge/tests-66-brightgreen)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)
